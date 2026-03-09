@@ -53,7 +53,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             className="flex-1 p-2 border rounded"
             required
           />
-          {/* HATA BURADAYDI: </div> yerine </button> olmalı */}
+      
           <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
             Projeyi Takip Et
           </button>
