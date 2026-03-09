@@ -11,8 +11,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.4.2",
     "@prisma/client": "6.4.1",
-    "@react-router/cloudflare": "7.13.1",
-    "@react-router/node": "7.13.1",
+    "@react-router/cloudflare": "^7.13.1",
     "@react-router/serve": "7.13.1",
     "isbot": "^5.1.31",
     "pg": "^8.20.0",
@@ -22,6 +21,7 @@
     "react-router": "7.13.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260307.1",
     "@react-router/dev": "7.13.1",
     "@tailwindcss/vite": "^4.1.13",
     "@types/node": "^22",

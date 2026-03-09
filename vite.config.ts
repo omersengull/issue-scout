@@ -1,8 +1,19 @@
+import tailwindcss from "@tailwindcss/vite";
 import { reactRouter } from "@react-router/dev/vite";
+import { cloudflareDevProxy } from "@react-router/adapter-cloudflare";
 import { defineConfig } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
-import tailwindcss from "@tailwindcss/vite";
+
 export default defineConfig({
-  // cloudflareDevProxy() kısmını sildik, çünkü derleme anında sorun çıkarıyor
-  plugins: [reactRouter(),tailwindcss(), tsconfigPaths()],
+  plugins: [
+    cloudflareDevProxy(), // Bu satırın olduğundan emin ol
+    reactRouter(),
+    tailwindcss(),
+    tsconfigPaths(),
+  ],
+  ssr: {
+    resolve: {
+      externalConditions: ["workerd", "worker"]
+    }
+  }
 });

@@ -1,3 +1,3 @@
-declare module "@react-router/dev/config/cloudflare" {
+declare module "@react-router/adapter-cloudflare" {
   export function cloudflareDevProxy(): any;
 }
