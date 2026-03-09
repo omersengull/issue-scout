@@ -1,6 +1,4 @@
 import { createPagesFunctionHandler } from "@react-router/cloudflare";
-
-// @ts-ignore - Build klasörü derleme sonrası oluşacağı için uyan uyarısını susturuyoruz
-import * as build from "../build/server/index.js";
+import * as build from "virtual:react-router/server-build";
 
 export const onRequest = createPagesFunctionHandler({ build });
