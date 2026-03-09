@@ -1,4 +1,3 @@
-declare module "@react-router/adapter-cloudflare" {
-  import type { ViteDevServer } from "vite";
+declare module "@react-router/dev/config/cloudflare" {
   export function cloudflareDevProxy(): any;
 }
