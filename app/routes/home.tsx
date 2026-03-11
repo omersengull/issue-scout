@@ -1,46 +1,52 @@
-import { Form, useLoaderData } from "react-router";
+import { Form } from "react-router";
 import type { Route } from "./+types/home";
-import { PrismaClient } from "@prisma/client";
-import { PrismaNeon } from "@prisma/adapter-neon";
-import { neon } from "@neondatabase/serverless";
+import { db } from "~/db";
+import { projects } from "~/db/schema"; // Şemayı import etmelisin
+import { desc } from "drizzle-orm";
 
-
-function getPrisma() {
-  const sql = neon(process.env.DATABASE_URL!);
-  // @ts-ignore
-  return new PrismaClient({ adapter: new PrismaNeon(sql) });
-}
 export async function action({ request }: Route.ActionArgs) {
-  const prisma = getPrisma();
   const formData = await request.formData();
   const repoUrl = formData.get("repoUrl") as string;
 
   if (!repoUrl) return { error: "Link gerekli" };
 
-  // URL'den owner ve name ayıklama (Daha güvenli hale getirdik)
+  // URL'den owner ve name ayıklama
   const cleanUrl = repoUrl.replace("https://github.com/", "").replace(/\/$/, "");
   const [owner, name] = cleanUrl.split("/");
 
   if (!owner || !name) return { error: "Geçersiz GitHub linki" };
 
-  const project = await prisma.project.create({
-    data: { 
-      owner, 
-      name, 
-      description: `${owner}/${name} projesi` 
-    },
-  });
+  try {
+    // DRIZZLE INSERT
+    const [newProject] = await db.insert(projects).values({
+      owner,
+      name,
+      description: `${owner}/${name} projesi`,
+    }).returning();
 
-  return { success: true, project };
+    return { success: true, project: newProject };
+  } catch (error) {
+    console.error("Drizzle Hatası:", error);
+    return { error: "Proje eklenirken bir hata oluştu." };
+  }
 }
 
 export async function loader() {
-  const prisma = getPrisma();
-  const projects = await prisma.project.findMany({
-    include: { bounties: true },
-    orderBy: { createdAt: "desc" } // En yeni eklenen en üstte
-  });
-  return { projects };
+  try {
+    // DRIZZLE SELECT (Bounties ilişkisi için şemada relation tanımlı olmalı, 
+    // şimdilik en temel haliyle çekiyoruz)
+    const allProjects = await db.query.projects.findMany({
+      with: {
+        bounties: true, // Şemada relations tanımladıysan çalışır
+      },
+      orderBy: [desc(projects.createdAt)],
+    });
+
+    return { projects: allProjects };
+  } catch (error) {
+    console.error("Loader Hatası:", error);
+    return { projects: [] };
+  }
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
@@ -60,7 +66,6 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             className="flex-1 p-2 border rounded"
             required
           />
-      
           <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
             Projeyi Takip Et
           </button>
@@ -72,7 +77,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         {projects.length === 0 && (
           <p className="text-gray-500 italic">Henüz hiçbir proje eklemedin.</p>
         )}
-        {projects.map((project:any) => (
+        {projects.map((project: any) => (
           <div key={project.id} className="p-3 border rounded shadow-sm bg-white flex justify-between items-center">
             <div>
               <span className="font-bold text-blue-600">{project.owner}</span>
@@ -80,7 +85,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               <span className="font-medium">{project.name}</span>
             </div>
             <span className="text-xs text-gray-400">
-              {project.bounties.length} görev
+              {project.bounties?.length || 0} görev
             </span>
           </div>
         ))}
