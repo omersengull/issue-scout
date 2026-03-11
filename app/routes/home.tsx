@@ -1,11 +1,17 @@
 import { Form, useLoaderData } from "react-router";
 import type { Route } from "./+types/home";
 import { PrismaClient } from "@prisma/client";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import { neon } from "@neondatabase/serverless";
 
-// PrismaClient'ın her reload'da yeni bağlantı açmasını engellemek için dışarıda tanımlıyoruz
-const prisma = new PrismaClient();
 
+function getPrisma() {
+  const sql = neon(process.env.DATABASE_URL!);
+  // @ts-ignore
+  return new PrismaClient({ adapter: new PrismaNeon(sql) });
+}
 export async function action({ request }: Route.ActionArgs) {
+  const prisma = getPrisma();
   const formData = await request.formData();
   const repoUrl = formData.get("repoUrl") as string;
 
@@ -29,6 +35,7 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export async function loader() {
+  const prisma = getPrisma();
   const projects = await prisma.project.findMany({
     include: { bounties: true },
     orderBy: { createdAt: "desc" } // En yeni eklenen en üstte
